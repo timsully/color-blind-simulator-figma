@@ -1,0 +1,661 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <style>
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    body {
+      font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      padding: 16px;
+      background: #ffffff;
+      color: #000000;
+      overflow-y: auto;
+    }
+
+    h1 {
+      font-size: 16px;
+      font-weight: 600;
+      margin-bottom: 8px;
+      color: #000000;
+    }
+
+    .description {
+      font-size: 12px;
+      color: #666666;
+      margin-bottom: 20px;
+      line-height: 1.4;
+    }
+
+    .preview-container {
+      margin-bottom: 20px;
+      border: 1px solid #e5e5e5;
+      border-radius: 6px;
+      padding: 12px;
+      background: #fafafa;
+    }
+
+    .preview-container.empty {
+      padding: 40px 20px;
+      color: #888888;
+      font-size: 12px;
+      text-align: center;
+    }
+
+    .preview-grid {
+      display: flex;
+      gap: 12px;
+      align-items: flex-start;
+    }
+
+    .preview-column {
+      flex: 1;
+      text-align: center;
+    }
+
+    .preview-image {
+      width: 100%;
+      max-height: 300px;
+      object-fit: contain;
+      border-radius: 4px;
+      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+      background: #ffffff;
+    }
+
+    .preview-label {
+      font-size: 11px;
+      color: #666666;
+      margin-top: 8px;
+      font-weight: 500;
+    }
+
+    .option-group {
+      margin-bottom: 20px;
+    }
+
+    .dropdown-container {
+      position: relative;
+    }
+
+    select {
+      width: 100%;
+      padding: 12px 16px;
+      font-size: 13px;
+      font-weight: 400;
+      border: 1px solid #e5e5e5;
+      border-radius: 6px;
+      background: #ffffff;
+      color: #000000;
+      cursor: pointer;
+      appearance: none;
+      -webkit-appearance: none;
+      -moz-appearance: none;
+      background-image: url("data:image/svg+xml,%3Csvg width='12' height='8' viewBox='0 0 12 8' fill='none' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M1 1L6 6L11 1' stroke='%23666666' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E");
+      background-repeat: no-repeat;
+      background-position: right 12px center;
+      padding-right: 40px;
+      transition: all 0.2s;
+    }
+
+    select:hover {
+      border-color: #18a0fb;
+      background-color: #f5f5f5;
+    }
+
+    select:focus {
+      outline: none;
+      border-color: #18a0fb;
+      box-shadow: 0 0 0 2px rgba(24, 160, 251, 0.1);
+    }
+
+    .description-text {
+      font-size: 11px;
+      color: #888888;
+      margin-top: 8px;
+      line-height: 1.4;
+    }
+
+    .button {
+      width: 100%;
+      padding: 10px 16px;
+      font-size: 13px;
+      font-weight: 500;
+      border: none;
+      border-radius: 6px;
+      cursor: pointer;
+      transition: all 0.2s;
+      margin-bottom: 8px;
+    }
+
+    .button-primary {
+      background: #18a0fb;
+      color: #ffffff;
+    }
+
+    .button-primary:hover {
+      background: #0d8ce8;
+    }
+
+    .button-primary:active {
+      background: #0b7bc7;
+    }
+
+    .button-primary:disabled {
+      background: #cccccc;
+      cursor: not-allowed;
+    }
+
+    .button-secondary {
+      background: #f0f0f0;
+      color: #000000;
+    }
+
+    .button-secondary:hover {
+      background: #e0e0e0;
+    }
+
+    .loading {
+      display: none;
+      text-align: center;
+      padding: 10px;
+      font-size: 12px;
+      color: #666666;
+    }
+
+    .error-message {
+      display: none;
+      background: #fee;
+      border: 1px solid #fcc;
+      border-radius: 6px;
+      padding: 12px;
+      margin-bottom: 16px;
+      font-size: 12px;
+      color: #c00;
+    }
+  </style>
+</head>
+<body>
+  <h1>Color Blind Simulator</h1>
+  <p class="description">
+    Select a layer in Figma and choose a color blindness type to preview how it appears.
+  </p>
+
+  <div class="error-message" id="errorMessage"></div>
+
+  <div class="preview-container empty" id="previewContainer">
+    <div>Select a layer and click "Preview" to see the simulation</div>
+  </div>
+
+  <div class="loading" id="loading">Processing image...</div>
+
+  <div class="option-group">
+    <div class="dropdown-container">
+      <select id="colorBlindnessSelect">
+        <option value="normal">Normal Vision - No simulation</option>
+        <option value="protanopia">Protanopia - Red-blind (cannot see red light)</option>
+        <option value="deuteranopia">Deuteranopia - Green-blind (cannot see green light)</option>
+        <option value="tritanopia">Tritanopia - Blue-blind (cannot see blue light)</option>
+        <option value="protanomaly">Protanomaly - Red-weak (reduced red sensitivity)</option>
+        <option value="deuteranomaly">Deuteranomaly - Green-weak (reduced green sensitivity)</option>
+        <option value="tritanomaly">Tritanomaly - Blue-weak (reduced blue sensitivity)</option>
+        <option value="achromatopsia">Achromatopsia - Complete color blindness (grayscale)</option>
+      </select>
+      <div class="description-text" id="descriptionText">No simulation</div>
+    </div>
+  </div>
+
+  <button class="button button-primary" id="previewBtn">Preview</button>
+
+  <script>
+    // Color blindness simulation algorithms (same as in code.js)
+    function linearizeSRGB(c) {
+      if (c <= 0.04045) {
+        return c / 12.92;
+      } else {
+        return Math.pow((c + 0.055) / 1.055, 2.4);
+      }
+    }
+
+    function sRGBFromLinear(c) {
+      if (c <= 0.0031308) {
+        return 12.92 * c;
+      } else {
+        return 1.055 * Math.pow(c, 1.0 / 2.4) - 0.055;
+      }
+    }
+
+    function rgbToLms(r, g, b) {
+      var rLin = linearizeSRGB(r);
+      var gLin = linearizeSRGB(g);
+      var bLin = linearizeSRGB(b);
+      var l = 0.31399022 * rLin + 0.63951294 * gLin + 0.04649755 * bLin;
+      var m = 0.15537241 * rLin + 0.75789446 * gLin + 0.08670142 * bLin;
+      var s = 0.01775239 * rLin + 0.10944209 * gLin + 0.87256922 * bLin;
+      return [l, m, s];
+    }
+
+    function lmsToRgb(l, m, s) {
+      var rLin = 5.47221206 * l - 4.6419601 * m + 0.16963708 * s;
+      var gLin = -1.1252419 * l + 2.29317094 * m - 0.1678952 * s;
+      var bLin = 0.02980165 * l - 0.19318073 * m + 1.16364789 * s;
+      var r = sRGBFromLinear(rLin);
+      var g = sRGBFromLinear(gLin);
+      var b = sRGBFromLinear(bLin);
+      return [r, g, b];
+    }
+
+    function applyBrettelDichromacy(l, m, s, type) {
+      var l2, m2, s2;
+      switch (type) {
+        case 'protanopia':
+          l2 = 0.0 * l + 2.02344 * m + -2.52581 * s;
+          m2 = 0.0 * l + 1.0 * m + 0.0 * s;
+          s2 = 0.0 * l + 0.0 * m + 1.0 * s;
+          break;
+        case 'deuteranopia':
+          l2 = 1.0 * l + 0.0 * m + 0.0 * s;
+          m2 = 0.494207 * l + 0.0 * m + 1.24827 * s;
+          s2 = 0.0 * l + 0.0 * m + 1.0 * s;
+          break;
+        case 'tritanopia':
+          l2 = 1.0 * l + 0.0 * m + 0.0 * s;
+          m2 = 0.0 * l + 1.0 * m + 0.0 * s;
+          s2 = -0.395913 * l + 0.801109 * m + 0.0 * s;
+          break;
+        default:
+          return [l, m, s];
+      }
+      return [l2, m2, s2];
+    }
+
+    function applyMachadoAnomaly(l, m, s, type) {
+      var l2, m2, s2;
+      switch (type) {
+        case 'protanomaly':
+          l2 = 0.81667 * l + 0.18333 * m + 0.0 * s;
+          m2 = 0.0 * l + 1.0 * m + 0.0 * s;
+          s2 = 0.0 * l + 0.0 * m + 1.0 * s;
+          break;
+        case 'deuteranomaly':
+          l2 = 1.0 * l + 0.0 * m + 0.0 * s;
+          m2 = 0.22222 * l + 0.77778 * m + 0.0 * s;
+          s2 = 0.0 * l + 0.0 * m + 1.0 * s;
+          break;
+        case 'tritanomaly':
+          l2 = 1.0 * l + 0.0 * m + 0.0 * s;
+          m2 = 0.0 * l + 1.0 * m + 0.0 * s;
+          s2 = 0.0 * l + 0.33333 * m + 0.66667 * s;
+          break;
+        default:
+          return [l, m, s];
+      }
+      return [l2, m2, s2];
+    }
+
+    function applyColorBlindness(r, g, b, type) {
+      if (type === 'normal') {
+        return [r, g, b];
+      }
+      if (type === 'achromatopsia') {
+        var gray = 0.299 * r + 0.587 * g + 0.114 * b;
+        return [gray, gray, gray];
+      }
+      
+      // Optimize: inline common operations to reduce function calls
+      var rLin = r <= 0.04045 ? r / 12.92 : Math.pow((r + 0.055) / 1.055, 2.4);
+      var gLin = g <= 0.04045 ? g / 12.92 : Math.pow((g + 0.055) / 1.055, 2.4);
+      var bLin = b <= 0.04045 ? b / 12.92 : Math.pow((b + 0.055) / 1.055, 2.4);
+      
+      var l = 0.31399022 * rLin + 0.63951294 * gLin + 0.04649755 * bLin;
+      var m = 0.15537241 * rLin + 0.75789446 * gLin + 0.08670142 * bLin;
+      var s = 0.01775239 * rLin + 0.10944209 * gLin + 0.87256922 * bLin;
+      
+      var l2, m2, s2;
+      
+      // Inline transformations for better performance
+      if (type === 'protanopia') {
+        l2 = 2.02344 * m - 2.52581 * s;
+        m2 = m;
+        s2 = s;
+      } else if (type === 'deuteranopia') {
+        l2 = l;
+        m2 = 0.494207 * l + 1.24827 * s;
+        s2 = s;
+      } else if (type === 'tritanopia') {
+        l2 = l;
+        m2 = m;
+        s2 = -0.395913 * l + 0.801109 * m;
+      } else if (type === 'protanomaly') {
+        l2 = 0.81667 * l + 0.18333 * m;
+        m2 = m;
+        s2 = s;
+      } else if (type === 'deuteranomaly') {
+        l2 = l;
+        m2 = 0.22222 * l + 0.77778 * m;
+        s2 = s;
+      } else if (type === 'tritanomaly') {
+        l2 = l;
+        m2 = m;
+        s2 = 0.33333 * m + 0.66667 * s;
+      } else {
+        return [r, g, b];
+      }
+      
+      // Convert back to RGB
+      var rLin2 = 5.47221206 * l2 - 4.6419601 * m2 + 0.16963708 * s2;
+      var gLin2 = -1.1252419 * l2 + 2.29317094 * m2 - 0.1678952 * s2;
+      var bLin2 = 0.02980165 * l2 - 0.19318073 * m2 + 1.16364789 * s2;
+      
+      var r2 = rLin2 <= 0.0031308 ? 12.92 * rLin2 : 1.055 * Math.pow(rLin2, 1.0 / 2.4) - 0.055;
+      var g2 = gLin2 <= 0.0031308 ? 12.92 * gLin2 : 1.055 * Math.pow(gLin2, 1.0 / 2.4) - 0.055;
+      var b2 = bLin2 <= 0.0031308 ? 12.92 * bLin2 : 1.055 * Math.pow(bLin2, 1.0 / 2.4) - 0.055;
+      
+      return [
+        Math.max(0, Math.min(1, r2)),
+        Math.max(0, Math.min(1, g2)),
+        Math.max(0, Math.min(1, b2))
+      ];
+    }
+
+    function loadImageToDataUrl(imageData) {
+      var img = new Image();
+      
+      return new Promise(function(resolve, reject) {
+        img.onload = function() {
+          var canvas = document.createElement('canvas');
+          var ctx = canvas.getContext('2d');
+          canvas.width = img.width;
+          canvas.height = img.height;
+          ctx.drawImage(img, 0, 0);
+          resolve(canvas.toDataURL());
+        };
+        
+        img.onerror = function() {
+          reject(new Error('Failed to load image'));
+        };
+        
+        // Handle base64 string or array
+        if (typeof imageData === 'string') {
+          img.src = 'data:image/png;base64,' + imageData;
+        } else if (Array.isArray(imageData)) {
+          try {
+            var data = new Uint8Array(imageData);
+            var blob = new Blob([data], { type: 'image/png' });
+            var url = URL.createObjectURL(blob);
+            img.src = url;
+          } catch (error) {
+            reject(new Error('Failed to create image from array: ' + error.message));
+          }
+        } else {
+          reject(new Error('Invalid image data format: ' + typeof imageData));
+        }
+      });
+    }
+
+    function processImage(imageData, type) {
+      var canvas = document.createElement('canvas');
+      var ctx = canvas.getContext('2d');
+      var img = new Image();
+      
+      return new Promise(function(resolve, reject) {
+        img.onload = function() {
+          try {
+            canvas.width = img.width;
+            canvas.height = img.height;
+            ctx.drawImage(img, 0, 0);
+            
+            var imageDataObj = ctx.getImageData(0, 0, canvas.width, canvas.height);
+            var data = imageDataObj.data;
+            var length = data.length;
+            
+            // Optimize: cache color transformation for normal type
+            if (type === 'normal') {
+              // No processing needed for normal vision
+              ctx.putImageData(imageDataObj, 0, 0);
+              resolve(canvas.toDataURL());
+              return;
+            }
+            
+            // Optimize: process all pixels at once with optimized loop
+            // Cache division by 255
+            var inv255 = 1 / 255;
+            
+            for (var i = 0; i < length; i += 4) {
+              var r = data[i] * inv255;
+              var g = data[i + 1] * inv255;
+              var b = data[i + 2] * inv255;
+              
+              var transformed = applyColorBlindness(r, g, b, type);
+              
+              data[i] = Math.round(transformed[0] * 255);
+              data[i + 1] = Math.round(transformed[1] * 255);
+              data[i + 2] = Math.round(transformed[2] * 255);
+              // Alpha channel stays the same
+            }
+            
+            ctx.putImageData(imageDataObj, 0, 0);
+            resolve(canvas.toDataURL());
+          } catch (error) {
+            reject(error);
+          }
+        };
+        
+        img.onerror = function(error) {
+          reject(new Error('Failed to load image'));
+        };
+        
+        // Handle base64 string or array
+        if (typeof imageData === 'string') {
+          // Base64 string
+          img.src = 'data:image/png;base64,' + imageData;
+        } else if (Array.isArray(imageData)) {
+          // Array - convert to Uint8Array then to blob
+          try {
+            var data = new Uint8Array(imageData);
+            var blob = new Blob([data], { type: 'image/png' });
+            var url = URL.createObjectURL(blob);
+            img.src = url;
+          } catch (error) {
+            reject(new Error('Failed to create image from array: ' + error.message));
+          }
+        } else {
+          reject(new Error('Invalid image data format: ' + typeof imageData));
+        }
+      });
+    }
+
+    var previewBtn = document.getElementById('previewBtn');
+    var previewContainer = document.getElementById('previewContainer');
+    var loading = document.getElementById('loading');
+    var errorMessage = document.getElementById('errorMessage');
+    var colorBlindnessSelect = document.getElementById('colorBlindnessSelect');
+    var descriptionText = document.getElementById('descriptionText');
+    var currentImageData = null;
+    var originalImageDataUrl = null;
+    var currentType = 'normal';
+    
+    // Description mapping
+    var descriptions = {
+      'normal': 'No simulation',
+      'protanopia': 'Red-blind (cannot see red light)',
+      'deuteranopia': 'Green-blind (cannot see green light)',
+      'tritanopia': 'Blue-blind (cannot see blue light)',
+      'protanomaly': 'Red-weak (reduced red sensitivity)',
+      'deuteranomaly': 'Green-weak (reduced green sensitivity)',
+      'tritanomaly': 'Blue-weak (reduced blue sensitivity)',
+      'achromatopsia': 'Complete color blindness (grayscale)'
+    };
+    
+    // Update description when selection changes
+    function updateDescription() {
+      var value = colorBlindnessSelect.value;
+      descriptionText.textContent = descriptions[value] || '';
+    }
+
+    function showError(message) {
+      errorMessage.textContent = message;
+      errorMessage.style.display = 'block';
+    }
+
+    function hideError() {
+      errorMessage.style.display = 'none';
+    }
+
+    function updatePreview() {
+      if (!currentImageData) {
+        previewContainer.className = 'preview-container empty';
+        previewContainer.innerHTML = '<div>Select a layer and click "Preview" to see the simulation</div>';
+        return;
+      }
+
+      var type = colorBlindnessSelect.value || 'normal';
+      currentType = type;
+
+      console.log('Updating preview with type:', type);
+      loading.style.display = 'block';
+      previewContainer.className = 'preview-container';
+
+      // Load original image if not already loaded
+      var originalPromise = originalImageDataUrl 
+        ? Promise.resolve(originalImageDataUrl)
+        : loadImageToDataUrl(currentImageData).then(function(url) {
+            originalImageDataUrl = url;
+            return url;
+          });
+
+      // Process simulated image
+      var simulatedPromise = processImage(currentImageData, type);
+
+      Promise.all([originalPromise, simulatedPromise]).then(function(results) {
+        console.log('Preview processed successfully');
+        loading.style.display = 'none';
+        var originalUrl = results[0];
+        var simulatedUrl = results[1];
+        var typeLabel = type === 'normal' ? 'Normal Vision' : type.charAt(0).toUpperCase() + type.slice(1);
+        
+        previewContainer.innerHTML = 
+          '<div class="preview-grid">' +
+            '<div class="preview-column">' +
+              '<img src="' + originalUrl + '" class="preview-image" alt="Original">' +
+              '<div class="preview-label">Original</div>' +
+            '</div>' +
+            '<div class="preview-column">' +
+              '<img src="' + simulatedUrl + '" class="preview-image" alt="Simulated">' +
+              '<div class="preview-label">' + typeLabel + '</div>' +
+            '</div>' +
+          '</div>';
+      }).catch(function(error) {
+        console.error('Error processing preview:', error);
+        loading.style.display = 'none';
+        showError('Error processing image: ' + (error.message || error));
+      });
+    }
+
+    previewBtn.addEventListener('click', function() {
+      var type = colorBlindnessSelect.value;
+      if (type) {
+        hideError();
+        loading.style.display = 'block';
+        previewContainer.className = 'preview-container';
+        previewContainer.innerHTML = '<div>Loading...</div>';
+        parent.postMessage({
+          pluginMessage: {
+            type: 'preview-simulation',
+            colorBlindnessType: type
+          }
+        }, '*');
+      } else {
+        showError('Please select a color blindness type');
+      }
+    });
+
+    // Update preview when selection changes
+    colorBlindnessSelect.addEventListener('change', function() {
+      updateDescription();
+      var type = colorBlindnessSelect.value;
+      if (type) {
+        // If we have cached image data, update immediately
+        if (currentImageData) {
+          updatePreview();
+        } else {
+          // Otherwise, request new preview from Figma
+          loading.style.display = 'block';
+          previewContainer.className = 'preview-container';
+          previewContainer.innerHTML = '<div>Loading...</div>';
+          parent.postMessage({
+            pluginMessage: {
+              type: 'get-preview',
+              colorBlindnessType: type
+            }
+          }, '*');
+        }
+      }
+    });
+    
+    // Request initial preview on load
+    window.addEventListener('load', function() {
+      updateDescription();
+      var type = colorBlindnessSelect.value;
+      if (type) {
+        parent.postMessage({
+          pluginMessage: {
+            type: 'get-preview',
+            colorBlindnessType: type
+          }
+        }, '*');
+      }
+    });
+
+    // Listen for messages from plugin
+    window.onmessage = function(event) {
+      var msg = event.data.pluginMessage;
+      if (!msg) {
+        console.log('No message received');
+        return;
+      }
+      
+      console.log('Message received:', msg.type);
+      
+      if (msg.type === 'image-data') {
+        console.log('Image data received, type:', msg.colorBlindnessType);
+        currentImageData = msg.imageData;
+        currentType = msg.colorBlindnessType;
+        // Reset original image data URL when new image is loaded
+        originalImageDataUrl = null;
+        hideError();
+        updatePreview();
+      } else if (msg.type === 'preview-error') {
+        console.error('Preview error:', msg.error);
+        loading.style.display = 'none';
+        showError(msg.error || 'An error occurred');
+        currentImageData = null;
+      } else if (msg.type === 'selection-changed') {
+        // Selection changed in Figma - update preview automatically
+        console.log('Selection changed, updating preview');
+        var type = colorBlindnessSelect.value;
+        if (type) {
+          loading.style.display = 'block';
+          previewContainer.className = 'preview-container';
+          previewContainer.innerHTML = '<div>Loading...</div>';
+          parent.postMessage({
+            pluginMessage: {
+              type: 'get-preview',
+              colorBlindnessType: type
+            }
+          }, '*');
+        }
+      } else if (msg.type === 'no-selection') {
+        // No layer selected
+        loading.style.display = 'none';
+        currentImageData = null;
+        originalImageDataUrl = null;
+        previewContainer.className = 'preview-container empty';
+        previewContainer.innerHTML = '<div>Select a layer to see the preview</div>';
+      }
+    };
+  </script>
+</body>
+</html>

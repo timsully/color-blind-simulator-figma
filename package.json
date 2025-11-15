@@ -1,0 +1,22 @@
+{
+  "name": "color-blind-simulator",
+  "version": "1.0.0",
+  "description": "A Figma plugin to simulate color blindness on selected layers",
+  "scripts": {
+    "build": "tsc",
+    "watch": "tsc --watch"
+  },
+  "keywords": [
+    "figma",
+    "plugin",
+    "color-blindness",
+    "accessibility"
+  ],
+  "author": "",
+  "license": "MIT",
+  "devDependencies": {
+    "@figma/plugin-typings": "^1.90.0",
+    "typescript": "^5.0.0"
+  }
+}
+

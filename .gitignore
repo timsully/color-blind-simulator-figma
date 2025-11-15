@@ -1,0 +1,9 @@
+node_modules/
+*.js.map
+.DS_Store
+*.log
+
+# Note: code.js is included because it's needed for the plugin to run
+# If you prefer to build from TypeScript, you can add code.js here
+# and run npm run build before using the plugin
+
