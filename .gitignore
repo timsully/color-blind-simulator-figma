@@ -2,6 +2,8 @@ node_modules/
 *.js.map
 .DS_Store
 *.log
+PUSH_TO_GITHUB.sh
+SETUP_GITHUB.md
 
 # Note: code.js is included because it's needed for the plugin to run
 # If you prefer to build from TypeScript, you can add code.js here
